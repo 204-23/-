@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程數學計算機 V3 (終極版)</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algebrite@1.4.0/dist/algebrite.bundle-min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', '微軟正黑體', sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        
+        /* 區塊樣式 */
+        section { margin-bottom: 40px; padding: 20px; background: #fff; border: 1px solid #e1e4e8; border-radius: 10px; }
+        section:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: #3498db; transition: 0.3s; }
+        
+        h2 { color: #2980b9; border-left: 5px solid #2980b9; padding-left: 10px; margin-top: 0; }
+        .note { font-size: 0.9em; color: #7f8c8d; margin-bottom: 10px; background: #f8f9fa; padding: 8px; border-radius: 5px; }
+        
+        /* 輸入框與按鈕 */
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #dfe6e9; border-radius: 8px; font-size: 16px; font-family: monospace; box-sizing: border-box; }
+        input:focus { border-color: #3498db; outline: none; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; cursor: pointer; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* 各種按鈕顏色 */
+        .btn-blue { background-color: #3498db; }
+        .btn-green { background-color: #27ae60; } /* 積分專用 */
+        .btn-orange { background-color: #e67e22; }
+        .btn-red { background-color: #e74c3c; }
+        .btn-purple { background-color: #9b59b6; }
+
+        .result { margin-top: 15px; padding: 15px; background-color: #ecf0f1; border-radius: 8px; font-family: monospace; font-size: 1.2em; white-space: pre-wrap; color: #2c3e50; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📐 工程數學計算機 V3</h1>
+
+    <section>
+        <h2>1. 微分 (Derivative)</h2>
+        <div class="note">輸入範例: x^3 + 2x^2, sin(x)*cos(x)</div>
+        <input type="text" id="deriv-input" value="x^3 + 2*x^2">
+        <button class="btn-blue" style="width:100%" onclick="calcDeriv()">計算微分 f'(x)</button>
+        <div id="deriv-result" class="result">結果顯示區</div>
+    </section>
+
+    <section>
+        <h2>2. 不定積分 (Integral)</h2>
+        <div class="note">輸入範例: x^2, sin(x), 1/x (使用 Algebrite 運算)</div>
+        <input type="text" id="integ-input" value="x^2 + sin(x)">
+        <button class="btn-green" style="width:100%" onclick="calcIntegral()">計算積分 ∫ f(x) dx</button>
+        <div id="integ-result" class="result">結果顯示區</div>
+    </section>
+
+    <section>
+        <h2>3. 矩陣大師 (Matrix)</h2>
+        <div class="note">輸入格式: [1, 2; 3, 4]</div>
+        <input type="text" id="matrix-input" value="[1, 2; 3, 4]">
+        <div class="btn-group">
+            <button class="btn-orange" onclick="calcMatrix('det')">行列式</button>
+            <button class="btn-red" onclick="calcMatrix('inv')">反矩陣</button>
+            <button class="btn-purple" onclick="calcMatrix('trans')">轉置</button>
+        </div>
+        <div id="matrix-result" class="result">結果顯示區</div>
+    </section>
+</div>
+
+<script>
+    // 1. 微分 (使用 math.js)
+    function calcDeriv() {
+        const expr = document.getElementById('deriv-input').value;
+        try {
+            const res = math.derivative(expr, 'x');
+            document.getElementById('deriv-result').innerText = "f'(x) = " + res.toString();
+        } catch (e) {
+            document.getElementById('deriv-result').innerText = "❌ 格式錯誤: " + e.message;
+        }
+    }
+
+    // 2. 積分 (使用 Algebrite)
+    function calcIntegral() {
+        const expr = document.getElementById('integ-input').value;
+        const resDiv = document.getElementById('integ-result');
+        try {
+            // [關鍵] 呼叫 Algebrite 的 integral 函式
+            // run 函式會執行指令，'integral(方程式)'
+            const result = Algebrite.run(`integral(${expr})`);
+            
+            // Algebrite 有時候會輸出很長的結果，我們直接顯示
+            resDiv.innerText = "∫ f(x) dx = " + result + " + C";
+        } catch (e) {
+            resDiv.innerText = "❌ 計算失敗，請檢查輸入格式";
+        }
+    }
+
+    // 3. 矩陣 (使用 math.js)
+    function calcMatrix(action) {
+        const input = document.getElementById('matrix-input').value;
+        const resDiv = document.getElementById('matrix-result');
+        try {
+            const matrix = math.evaluate(input);
+            let res = "";
+            
+            if (action === 'det') {
+                res = "Det = " + math.det(matrix);
+            } else if (action === 'inv') {
+                res = "Inv =\n" + math.format(math.inv(matrix), {precision: 4});
+            } else if (action === 'trans') {
+                res = "Trans =\n" + math.format(math.transpose(matrix));
+            }
+            resDiv.innerText = res;
+        } catch (e) {
+            resDiv.innerText = "❌ 矩陣錯誤: 格式不對或無反矩陣";
+        }
+    }
+</script>
+
+</body>
+</html>
